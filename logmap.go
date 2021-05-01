@@ -79,3 +79,11 @@ outer:
 	l.wg.Wait()
 	l.logger.Info("calc done")
 }
+
+func (l *LogMap) ScaleToScreen(x, y float64, w, h int) vector2 {
+
+	sx := (x / (l.config.RMax - l.config.RMin) * float64(w))
+	sy := (y * float64(h))
+
+	return vector2{X: sx, Y: sy}
+}

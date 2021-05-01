@@ -14,6 +14,7 @@ import (
 type Simulation interface {
 	GetPointChannel() chan vector2
 	Simulate(context.Context)
+	ScaleToScreen(float64, float64, int, int) vector2
 }
 
 type vector2 struct {
@@ -58,7 +59,10 @@ func (r *Renderer) drawNewPoints(imd *imdraw.IMDraw) {
 	r.pointBufferMtx.Unlock()
 
 	for _, v := range ipb {
-		r.logger.Sugar().Infof("%f,%fs", v.X, v.Y)
+		screen := r.simulation.ScaleToScreen(v.X, v.Y, 1024, 768)
+		imd.Color = pixel.RGB(0, 0, 0)
+		imd.Push(pixel.V(screen.X, screen.Y))
+		imd.Circle(1, 1)
 	}
 
 }
@@ -87,6 +91,7 @@ func (r *Renderer) run() {
 	go r.simulation.Simulate(ctx)
 	for !win.Closed() {
 		r.drawNewPoints(imd)
+		imd.Draw(win)
 		win.Update()
 	}
 	cf()
