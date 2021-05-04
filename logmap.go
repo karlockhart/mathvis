@@ -24,6 +24,7 @@ type LogMapConfig struct {
 	MaxDelta       float64
 	MaxIterations  int
 	MaxConcurrency int
+	CirclePlot     bool
 }
 
 func NewLogMap(config LogMapConfig, logger *zap.Logger) *LogMap {
@@ -37,7 +38,6 @@ func NewLogMap(config LogMapConfig, logger *zap.Logger) *LogMap {
 
 	l.logger.Info("adding tokens")
 	for i := 0; i < l.config.MaxConcurrency; i++ {
-		l.logger.Info("adding token")
 		l.tokens <- nil
 	}
 	l.logger.Info("done adding tokens")
@@ -81,9 +81,18 @@ outer:
 }
 
 func (l *LogMap) ScaleToScreen(x, y float64, w, h int) vector2 {
+	var sx, sy float64
 
-	sx := (x / (l.config.RMax - l.config.RMin) * float64(w))
-	sy := (y * float64(h))
+	if !l.config.CirclePlot {
+		sx = (x / (l.config.RMax - l.config.RMin) * float64(w))
+		sy = (y * float64(h))
+	} else {
+		my := 0.5 * float64(h)
+		r := y * my
+		theta := (x / (l.config.RMax - l.config.RMin) * (2 * math.Pi))
+		sx = (0.5 * float64(w)) + (r * math.Sin(theta))
+		sy = (0.5 * float64(h)) + (r * math.Cos(theta))
+	}
 
 	return vector2{X: sx, Y: sy}
 }

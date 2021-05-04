@@ -13,13 +13,14 @@ func main() {
 		log.Fatal(err)
 	}
 	lm := mathvis.NewLogMap(mathvis.LogMapConfig{
-		RMin:           0.0,
-		RMax:           4.0,
-		RStep:          0.001,
-		N:              0.4,
-		MaxDelta:       0.0000001,
-		MaxIterations:  1000000,
-		MaxConcurrency: 16,
+		RMin:           3.3,        // Start Value of R, usually > 0 <RMax
+		RMax:           4.0,        // End Value of R, < 4 or infinity will appear
+		RStep:          0.0005,     // The step value from RMin -> RMax, smaller = more resolution, more CPU
+		N:              0.4,        // Starting Population, 0.4 is my standard test value
+		MaxDelta:       0.00000001, // The largest difference in population change considered stable
+		MaxIterations:  10000000,   // The maximum number of iterations to try before giving up on stability
+		MaxConcurrency: 16,         // Max number of go routines to use
+		CirclePlot:     true,       // Plot results on a circle
 	}, l)
 	re := mathvis.NewRenderer(lm, l)
 	re.Run()

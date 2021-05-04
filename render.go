@@ -44,7 +44,6 @@ func (r *Renderer) enqueuePoints(ctx context.Context) {
 			r.pointBufferMtx.Lock()
 			r.pointBuffer = append(r.pointBuffer, v)
 			r.pointBufferMtx.Unlock()
-			r.logger.Info("added point to buffer")
 		case <-ctx.Done():
 			return
 		}
@@ -52,7 +51,7 @@ func (r *Renderer) enqueuePoints(ctx context.Context) {
 
 }
 
-func (r *Renderer) drawNewPoints(imd *imdraw.IMDraw) {
+func (r *Renderer) drawNewPoints(imd *imdraw.IMDraw) bool {
 	r.pointBufferMtx.Lock()
 	ipb := r.pointBuffer
 	r.pointBuffer = []vector2{}
@@ -60,11 +59,12 @@ func (r *Renderer) drawNewPoints(imd *imdraw.IMDraw) {
 
 	for _, v := range ipb {
 		screen := r.simulation.ScaleToScreen(v.X, v.Y, 1024, 768)
-		imd.Color = pixel.RGB(0, 0, 0)
+		imd.Color = pixel.RGBA{R: 0, G: 0, B: 1 * v.Y, A: 0.1}
 		imd.Push(pixel.V(screen.X, screen.Y))
-		imd.Circle(1, 1)
+		imd.Circle(0.5, 1)
 	}
 
+	return len(ipb) > 0
 }
 
 func (r *Renderer) run() {
@@ -89,11 +89,14 @@ func (r *Renderer) run() {
 	go r.enqueuePoints(ctx)
 	r.logger.Info("starting smilulation")
 	go r.simulation.Simulate(ctx)
+
 	for !win.Closed() {
-		r.drawNewPoints(imd)
-		imd.Draw(win)
+		if r.drawNewPoints(imd) {
+			imd.Draw(win)
+		}
 		win.Update()
 	}
+
 	cf()
 }
 
