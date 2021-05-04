@@ -9,7 +9,7 @@ import (
 )
 
 type LogMap struct {
-	buffer chan vector2
+	buffer chan vector3
 	logger *zap.Logger
 	tokens chan interface{}
 	config LogMapConfig
@@ -31,7 +31,7 @@ func NewLogMap(config LogMapConfig, logger *zap.Logger) *LogMap {
 	l := LogMap{}
 	l.logger = logger
 	l.config = config
-	l.buffer = make(chan vector2, 1024)
+	l.buffer = make(chan vector3, 1024)
 	l.tokens = make(chan interface{}, config.MaxConcurrency)
 	var wg sync.WaitGroup
 	l.wg = &wg
@@ -45,7 +45,7 @@ func NewLogMap(config LogMapConfig, logger *zap.Logger) *LogMap {
 	return &l
 }
 
-func (l *LogMap) GetPointChannel() chan vector2 {
+func (l *LogMap) GetPointChannel() chan vector3 {
 	return l.buffer
 }
 
@@ -59,7 +59,7 @@ func (l *LogMap) calcStablePop(ctx context.Context, r float64) {
 		n = nplusone
 	}
 
-	l.buffer <- vector2{X: r, Y: n}
+	l.buffer <- vector3{X: r, Y: n, Z: float64(l.config.MaxIterations) / float64(i)}
 
 	l.wg.Done()
 	l.tokens <- nil

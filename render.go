@@ -12,7 +12,7 @@ import (
 )
 
 type Simulation interface {
-	GetPointChannel() chan vector2
+	GetPointChannel() chan vector3
 	Simulate(context.Context)
 	ScaleToScreen(float64, float64, int, int) vector2
 }
@@ -22,9 +22,15 @@ type vector2 struct {
 	Y float64
 }
 
+type vector3 struct {
+	X float64
+	Y float64
+	Z float64
+}
+
 type Renderer struct {
 	logger         *zap.Logger
-	pointBuffer    []vector2
+	pointBuffer    []vector3
 	pointBufferMtx sync.Mutex
 	simulation     Simulation
 }
@@ -54,12 +60,12 @@ func (r *Renderer) enqueuePoints(ctx context.Context) {
 func (r *Renderer) drawNewPoints(imd *imdraw.IMDraw) bool {
 	r.pointBufferMtx.Lock()
 	ipb := r.pointBuffer
-	r.pointBuffer = []vector2{}
+	r.pointBuffer = []vector3{}
 	r.pointBufferMtx.Unlock()
 
 	for _, v := range ipb {
 		screen := r.simulation.ScaleToScreen(v.X, v.Y, 1024, 768)
-		imd.Color = pixel.RGBA{R: 0, G: 0, B: 1 * v.Y, A: 0.1}
+		imd.Color = pixel.RGBA{R: 1 * v.Z, G: 0, B: 1 * v.Y, A: 0.1}
 		imd.Push(pixel.V(screen.X, screen.Y))
 		imd.Circle(0.5, 1)
 	}
